@@ -7,15 +7,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: '23.05.5/ramips/mt7621'
-      SDK_TAR: 'openwrt-sdk-23.05.5-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz'
-      SDK_FOLDER: 'openwrt-sdk-23.05.5-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64'
-      SDK_URL: 'https://downloads.openwrt.org/releases/23.05.5/targets/ramips/mt7621/openwrt-sdk-23.05.5-ramips-mt7621_gcc-12.3.0_musl.Linux-x86_64.tar.xz'
+      RELEASE_VERSION: '24.10.1/imx/cortexa53'
+      SDK_TAR: 'openwrt-sdk-24.10.1-imx-cortexa53_gcc-13.3.0_musl.Linux-x86_64.tar.zst'
+      SDK_FOLDER: 'openwrt-sdk-24.10.1-imx-cortexa53_gcc-13.3.0_musl.Linux-x86_64'
+      SDK_URL: 'https://downloads.openwrt.org/releases/24.10.1/targets/imx/cortexa53/openwrt-sdk-24.10.1-imx-cortexa53_gcc-13.3.0_musl.Linux-x86_64.tar.zst'
       BUILD_DIR: '${{ github.workspace }}'
       SDK_DIR: '${{ github.workspace }}/openwrt-sdk'
       KISMET_REPO_DIR: '${{ github.workspace }}/kismet-packages'
       KISMET_PACKAGE: '${{ github.workspace }}/kismet-packages/openwrt/kismet-openwrt'
-      IPK_OUTPUT_DIR: '${{ github.workspace }}/openwrt-sdk/bin/packages/mipsel_24kc/kismet'
+      IPK_OUTPUT_DIR: '${{ github.workspace }}/openwrt-sdk/bin/packages//kismet'
       CURRENT_REPO_DIR: '${{ github.workspace }}/release-repo'
 
     steps:
@@ -36,7 +36,7 @@ jobs:
           wget -q $SDK_URL -P $BUILD_DIR
 
           echo "[*] Prepare folder"
-          tar xJf $BUILD_DIR/$SDK_TAR -C $BUILD_DIR
+          tar --zstd -xvf $BUILD_DIR/$SDK_TAR -C $BUILD_DIR
           mv $BUILD_DIR/$SDK_FOLDER $SDK_DIR
 
       - name: Prepare packages
