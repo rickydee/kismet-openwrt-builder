@@ -1,0 +1,99 @@
+name: Build and Deploy Kismet for OpenWRT
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: '24.10.1/imx/cortexa9'
+      SDK_TAR: 'openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
+      SDK_FOLDER: 'openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64'
+      SDK_URL: 'https://downloads.openwrt.org/releases/24.10.1/targets/imx/cortexa9/openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
+      BUILD_DIR: '${{ github.workspace }}'
+      SDK_DIR: '${{ github.workspace }}/openwrt-sdk'
+      KISMET_REPO_DIR: '${{ github.workspace }}/kismet-packages'
+      KISMET_PACKAGE: '${{ github.workspace }}/kismet-packages/openwrt/kismet-openwrt'
+      IPK_OUTPUT_DIR: '${{ github.workspace }}/openwrt-sdk/bin/packages/arm_cortex-a9_neon/kismet'
+      CURRENT_REPO_DIR: '${{ github.workspace }}/release-repo'
+
+    steps:
+      - name: Checkout Kismet packaging code
+        uses: actions/checkout@v4
+        with:
+          repository: 'kismetwireless/kismet-packages'
+          path: ${{ env.KISMET_REPO_DIR }}
+
+      - name: Fix kismet-packages 2024
+        run: |
+          echo "[*] Add missing libopenssl support..."
+          sed -i 's/+libsensors/+libsensors +libopenssl/' $KISMET_PACKAGE/kismet/Makefile
+
+      - name: Download and prepare OpenWRT SDK
+        run: |
+          echo "[*] Downloading SDK..."
+          wget -q $SDK_URL -P $BUILD_DIR
+
+          echo "[*] Prepare folder"
+          tar --zstd -xvf $BUILD_DIR/$SDK_TAR -C $BUILD_DIR
+          mv $BUILD_DIR/$SDK_FOLDER $SDK_DIR
+
+      - name: Prepare packages
+        run: |
+          echo "[*] Copying feeds configuration and adding Kismet"
+          cp $SDK_DIR/feeds.conf.default $SDK_DIR/feeds.conf
+          echo "src-link kismet $KISMET_PACKAGE" >> $SDK_DIR/feeds.conf
+
+          echo "[*] Update and install feeds"
+          cd $SDK_DIR
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+
+      - name: Build packages
+        run: |
+          echo "[*] Update and install feeds"
+          cd $SDK_DIR
+
+          make defconfig
+          echo 'CONFIG_CCACHE=y' >> ${{ env.SDK_DIR }}/.config
+
+          make -j$(nproc) package/kismet/compile
+          make -j$(nproc) package/kismet-tools/compile
+          make -j$(nproc) package/kismet-manuf-database/compile
+          make -j$(nproc) package/kismet-icao-database/compile
+
+          make -j$(nproc) package/kismet-capture-sdr-rtl433/compile
+          make -j$(nproc) package/kismet-capture-sdr-rtlamr/compile
+          make -j$(nproc) package/kismet-capture-sdr-rtladsb/compile
+          make -j$(nproc) package/kismet-capture-linux-bluetooth/compile
+          make -j$(nproc) package/kismet-capture-rz-killerbee/compile
+          make -j$(nproc) package/kismet-capture-ti-cc2531/compile
+          make -j$(nproc) package/kismet-capture-linux-wifi/compile
+          make -j$(nproc) package/kismet-capture-ti-cc2540/compile
+          make -j$(nproc) package/kismet-capture-nxp-kw41z/compile
+          make -j$(nproc) package/kismet-capture-nrf-51822/compile
+          make -j$(nproc) package/kismet-capture-nrf-52840/compile
+
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.CURRENT_REPO_DIR }}
+
+      - name: Move build output
+        run: |
+          mkdir -p $CURRENT_REPO_DIR/$RELEASE_VERSION
+          cp $IPK_OUTPUT_DIR/*.ipk $CURRENT_REPO_DIR/$RELEASE_VERSION
+
+      - name: Commit and push compiled packages
+        run: |
+          cd $CURRENT_REPO_DIR
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Automated build and deploy of Kismet packages for OpenWRT"
+            git push
+          fi
