@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       RELEASE_VERSION: '24.10.1/imx/cortexa9'
-      SDK_TAR: 'openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
-      SDK_FOLDER: 'openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64'
-      SDK_URL: 'https://downloads.openwrt.org/releases/24.10.1/targets/imx/cortexa9/openwrt-toolchain-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
+      SDK_TAR: 'openwrt-sdk-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
+      SDK_FOLDER: 'openwrt-sdk-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64'
+      SDK_URL: 'https://downloads.openwrt.org/releases/24.10.1/targets/imx/cortexa9/openwrt-sdk-24.10.1-imx-cortexa9_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst'
       BUILD_DIR: '${{ github.workspace }}'
       SDK_DIR: '${{ github.workspace }}/openwrt-sdk'
       KISMET_REPO_DIR: '${{ github.workspace }}/kismet-packages'
