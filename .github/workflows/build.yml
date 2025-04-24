@@ -15,7 +15,7 @@ jobs:
       SDK_DIR: '${{ github.workspace }}/openwrt-sdk'
       KISMET_REPO_DIR: '${{ github.workspace }}/kismet-packages'
       KISMET_PACKAGE: '${{ github.workspace }}/kismet-packages/openwrt/kismet-openwrt'
-      IPK_OUTPUT_DIR: '${{ github.workspace }}/openwrt-sdk/bin/packages//kismet'
+      IPK_OUTPUT_DIR: '${{ github.workspace }}/openwrt-sdk/bin/packages/aarch64_cortex-a53/kismet'
       CURRENT_REPO_DIR: '${{ github.workspace }}/release-repo'
 
     steps:
